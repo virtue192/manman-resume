@@ -1,0 +1,12 @@
+import { z } from 'zod';
+export type ModelConfig = { provider: 'compatible' | 'ollama'; baseUrl: string; model: string; apiKey: string };
+export type Suggestion = { original: string; replacement: string; reason: string; category: string; needsConfirmation: boolean };
+export type Result = { summary: string; strengths: string[]; suggestions: Suggestion[]; questions: string[] };
+export const providerSchema: z.ZodType<ModelConfig>;
+export const resultSchema: z.ZodType<Result>;
+export function validateEndpoint(config: ModelConfig): string;
+export function parseModelJSON(content: string): unknown;
+export function groundedResult(raw: unknown, source: string): Result;
+export function applySuggestions(source: string, suggestions: Suggestion[], accepted: number[]): string;
+export function resumeHTML(text: string, theme?: string): string;
+export function isHeading(line: string): boolean;

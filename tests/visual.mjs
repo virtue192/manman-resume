@@ -1,0 +1,53 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { browserPath } from '../server/files.mjs';
+const browser = await chromium.launch({ headless: true, ...(browserPath() ? { executablePath: browserPath() } : {}) });
+const context = await browser.newContext({ viewport: { width: 1440, height: 1200 }, deviceScaleFactor: 1 });
+const page = await context.newPage();
+const errors = []; page.on('pageerror', error => errors.push(error.message));
+try {
+  await page.goto('http://127.0.0.1:4317');
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(() => document.querySelector('.title-reveal')?.getAttribute('style')?.includes('-20%'));
+  await page.mouse.move(1400, 100);
+  await page.waitForTimeout(350);
+  await page.screenshot({ path: '../慢慢工作室预览.png', fullPage: true });
+  const title = page.locator('.fluid-title');
+  assert.ok(parseFloat(await title.evaluate(el => getComputedStyle(el).fontSize)) >= 56);
+  const letter = page.locator('.type-letter').first();
+  const bounds = await letter.boundingBox();
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.waitForTimeout(350);
+  assert.ok(Number(await letter.evaluate(el => el.style.getPropertyValue('--letter-weight'))) > 600, 'nearby characters gain weight');
+  assert.ok(parseFloat(await letter.evaluate(el => el.style.getPropertyValue('--letter-lift'))) < -5, 'nearby characters lift');
+  await page.mouse.move(1400, 100);
+  await page.waitForTimeout(350);
+  assert.equal(await letter.evaluate(el => el.style.getPropertyValue('--letter-weight')), '480', 'leaving the title resets the effect');
+  const panel = page.locator('.primary-panel').first(); const panelBounds = await panel.boundingBox();
+  await page.mouse.move(panelBounds.x + 40, panelBounds.y + 30);
+  await page.waitForTimeout(100);
+  assert.equal(await panel.evaluate(el => el.style.getPropertyValue('--light-opacity')), '1');
+  assert.ok((await panel.evaluate(el => getComputedStyle(el).backdropFilter)).includes('blur'));
+  assert.ok((await panel.evaluate(el => getComputedStyle(el, '::after').maskComposite)).split(',').every(v => v.trim() === 'exclude'));
+  assert.ok(await page.evaluate(() => document.fonts.check('480 24px "Noto Sans SC Variable"', '慢慢')));
+  await page.getByRole('button', { name: '连接我的模型' }).click();
+  await page.getByRole('dialog').waitFor();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: '../慢慢玻璃组件预览.png', fullPage: true });
+  await page.keyboard.press('Escape'); await page.getByRole('dialog').waitFor({ state: 'hidden' });
+  for (const width of [320, 390, 700, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 1200 });
+    await page.waitForTimeout(80);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `no overflow at ${width}px`);
+  }
+  await page.setViewportSize({ width: 390, height: 1700 });
+  await page.screenshot({ path: '../慢慢手机预览.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1200 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+  await page.waitForTimeout(200);
+  assert.equal(await letter.evaluate(el => getComputedStyle(el).transform), 'none');
+  assert.equal(await page.locator('.lens-shine').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
+  assert.deepEqual(errors, []);
+  console.log('Visual checks passed: bundled fonts, larger type, pointer proximity, reset, glass highlight, border mask, six responsive widths and reduced motion.');
+} finally { await context.close(); await browser.close(); }

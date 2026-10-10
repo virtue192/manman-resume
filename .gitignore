@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-pages/
+.env
+*.log
+test-results/
+.DS_Store
+*.tsbuildinfo

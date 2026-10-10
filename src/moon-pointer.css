@@ -1,0 +1,29 @@
+.moon-pointer-layer { position: fixed; inset: 0; z-index: 300; pointer-events: none!important; overflow: hidden; isolation: isolate; }
+.moon-pointer-layer * { pointer-events: none!important; user-select: none; }
+.moon-pointer-tip, .moon-pointer-light, .moon-pointer-ring { position: absolute; left: 0; top: 0; opacity: 0; transition: opacity .18s ease; will-change: transform; }
+.moon-pointer-layer[data-active="true"] .moon-pointer-tip,
+.moon-pointer-layer[data-active="true"] .moon-pointer-light,
+.moon-pointer-layer[data-active="true"] .moon-pointer-ring { opacity: 1; }
+.moon-pointer-tip { width: 38px; height: 42px; z-index: 3; }
+.moon-pointer-tip svg { display: block; filter: drop-shadow(0 2px 3px #60467c28); transform-origin: 3px 3px; transition: transform .2s cubic-bezier(.22,1,.36,1); }
+.moon-pointer-layer[data-hover="true"] .moon-pointer-tip svg { transform: scale(1.1) rotate(-5deg); }
+.moon-pointer-layer[data-pressed="true"] .moon-pointer-tip svg { transform: scale(.9) rotate(3deg); }
+.moon-pointer-light { z-index: 0; }
+.moon-pointer-light>span { position: absolute; width: 350px; height: 350px; left: -175px; top: -175px; border-radius: 50%; background: radial-gradient(circle, #ffe5a929 0%, #eddaa521 24%, #d0b9e41c 47%, transparent 71%); }
+.moon-pointer-ring { z-index: 1; }
+.moon-pointer-ring>span { position: absolute; width: 39px; height: 39px; left: -19.5px; top: -19.5px; border: 1px solid #ad95bc69; border-radius: 50%; background: radial-gradient(circle, #ffffff10, #ebdef220); box-shadow: inset 0 1px 2px #ffffffa3; transition: width .25s, height .25s, left .25s, top .25s, border-color .25s, background .25s; }
+.moon-pointer-layer[data-hover="true"] .moon-pointer-ring>span { width: 53px; height: 53px; left: -26.5px; top: -26.5px; border-color: #beaa8170; background: #f8e8bb17; }
+body.moon-pointer-active, body.moon-pointer-active * { cursor: none!important; }
+/* Native editing cues survive even if the pointer has not moved since a new field appeared. */
+body.moon-pointer-active :is(input,textarea,select,option,[contenteditable],.resume-paper,.resume-paper *,.diff-grid,.diff-grid *,[data-native-cursor],[data-native-cursor] *) { cursor: auto!important; }
+body.moon-pointer-active :is(input,textarea,[contenteditable]) { cursor: text!important; }
+body.moon-pointer-active button:disabled { cursor: not-allowed!important; }
+.moon-click-bloom { position: absolute; width: 0; height: 0; z-index: 2; }
+.moon-click-ripple { position: absolute; left: 0; top: 0; width: 43px; height: 43px; border-radius: 50%; border: 1px solid #c3a96b99; box-shadow: 0 0 9px #eed58e29; }
+.moon-click-ripple.ripple-1 { width: 28px; height: 28px; border-color: #b998ce80; }
+.moon-click-spark { position: absolute; left: 0; top: 0; color: #bfa368; font-size: 10px; line-height: 1; }
+.moon-click-spark:nth-child(even) { color: #b59aca; }
+@media (pointer: coarse), (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .moon-pointer-layer { display: none; }
+  body.moon-pointer-active, body.moon-pointer-active * { cursor: revert!important; }
+}
